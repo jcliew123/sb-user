@@ -6,6 +6,9 @@ import com.example.jcliew.UserManagement.model.JwtModel;
 import com.example.jcliew.UserManagement.model.SignInModel;
 import com.example.jcliew.UserManagement.model.SignUpModel;
 import com.example.jcliew.UserManagement.service.AuthService;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -27,6 +30,10 @@ public class AuthController {
 
     private final AuthService authService;
 
+//    private final static Logger logger = LoggerFactory.getLogger(AuthController.class);
+
+    private static final ObjectMapper mapper = new ObjectMapper().setSerializationInclusion(JsonInclude.Include.NON_NULL);
+
     @PostMapping("/signup")
     public ResponseEntity<?> signUp(@RequestBody SignUpModel model) {
         authService.signUp(model);
@@ -34,9 +41,10 @@ public class AuthController {
     }
 
     @PostMapping("/signin")
-    public ResponseEntity<JwtModel> signIn(@RequestBody SignInModel model) {
+    public ResponseEntity<JwtModel> signIn(@RequestBody SignInModel model) throws JsonProcessingException {
         UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(model.username(), model.password());
         Authentication authUser = authenticationManager.authenticate(authenticationToken);
+        System.out.println("authUser: " + mapper.writeValueAsString(authUser));
         String token = tokenProvider.generateAccessToken((User) authUser.getPrincipal());
         return ResponseEntity.ok(new JwtModel(token));
     }
